@@ -110,6 +110,44 @@
   .warn.lev{background:rgba(227,179,65,.1);border:1px solid #5c4a1a;color:var(--amber)}
   .warn.err{background:rgba(229,83,75,.1);border:1px solid #7a2e2a;color:var(--red)}
 
+  /* ===== circuit-breaker ===== */
+  .cb-status{text-align:center;transition:border-color .35s,box-shadow .35s,background .35s}
+  .cb-status.amber{border-color:#5c4a1a;box-shadow:0 0 0 1px #5c4a1a,0 0 40px -10px rgba(227,179,65,.3)}
+  .cb-status.red{border-color:#7a2e2a;box-shadow:0 0 0 1px #7a2e2a,0 0 44px -8px rgba(229,83,75,.35)}
+  .cb-state{font-family:'Archivo';font-weight:800;font-size:22px;letter-spacing:.04em;margin-bottom:18px;color:var(--accent)}
+  .cb-status.amber .cb-state{color:var(--amber)}
+  .cb-status.red .cb-state{color:var(--red)}
+  .cb-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .cbm{background:var(--panel-2);padding:13px 8px;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .cbm .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2)}
+  .cbm .v{font-size:24px;font-weight:700}
+  .cbm .ks{font-size:9.5px;color:var(--muted-2);letter-spacing:.04em}
+  .cb-msg{margin-top:16px;font-family:'JetBrains Mono';font-size:12.5px;line-height:1.5;color:var(--muted);min-height:1px}
+  .cb-msg:empty{display:none}
+  .cb-msg.amber{color:var(--amber)}.cb-msg.red{color:var(--red)}
+  .cb-entry{margin-bottom:14px}
+  .cb-fieldlbl{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);margin-bottom:8px}
+  .cb-entry input{width:100%;font-size:17px;padding:14px;margin-bottom:10px}
+  .cb-entry .tap{width:100%;padding:15px;font-size:16px}
+  .ghost.arm{border-color:var(--amber);color:var(--amber)}
+  .cb-quick{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px}
+  .cb-quicklbl{font-size:10.5px;letter-spacing:.04em;color:var(--muted-2);margin-bottom:8px}
+  .cb-quick button{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:7px 12px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;transition:all .15s}
+  .cb-quick button:hover{border-color:var(--accent-dim);color:var(--accent)}
+  .cb-log{margin-top:8px}
+  .cb-log:empty{display:none}
+  .cb-trade{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line-soft);font-family:'JetBrains Mono';font-size:13px}
+  .cb-trade:last-child{border-bottom:none}
+  .cb-trade .seq{color:var(--muted-2);width:24px}
+  .cb-trade .r{font-weight:700;flex:1}
+  .cb-trade .r.pos{color:var(--accent)}.cb-trade .r.neg{color:var(--red)}.cb-trade .r.flat{color:var(--muted)}
+  .cb-trade .tag{font-size:10px;color:var(--muted-2);letter-spacing:.06em}
+  .cb-trade .tag.run{color:var(--accent)}
+  .cb-trade .x{background:none;border:none;color:var(--muted-2);cursor:pointer;opacity:.5}.cb-trade .x:hover{opacity:1;color:var(--red)}
+  .cb-set-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;font-family:'JetBrains Mono';font-size:13px;color:var(--muted)}
+  .cb-set-row .inpwrap{width:110px}.cb-set-row input{padding:8px 24px 8px 11px}
+  .cb-note{font-size:11.5px;color:var(--muted-2);line-height:1.5;margin-top:6px}
+
   /* footer */
   .foot{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:22px;flex-wrap:wrap}
   .ghost{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 15px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;transition:all .15s}
@@ -138,6 +176,7 @@
   <div class="tabs">
     <button data-tab="mb" class="sel">Model Book</button>
     <button data-tab="ps">Position Size</button>
+    <button data-tab="cb">Circuit-Breaker</button>
   </div>
 
   <!-- ============ MODEL BOOK ============ -->
@@ -224,6 +263,39 @@
         </div>
         <div id="ps_warn"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ CIRCUIT-BREAKER ============ -->
+  <div class="view cb" id="view-cb">
+    <div class="card cb-status" id="cbCard">
+      <div class="cb-state" id="cbState">CLEAR TO PROBE</div>
+      <div class="cb-strip">
+        <div class="cbm"><span class="k">Trades</span><span class="v mono" id="cbTrades">0</span></div>
+        <div class="cbm"><span class="k">Net</span><span class="v mono" id="cbNet">0.00R</span></div>
+        <div class="cbm"><span class="k">Streak</span><span class="v mono" id="cbStreak">0</span><span class="ks" id="cbStreakLbl">non-runners</span></div>
+      </div>
+      <div class="cb-msg" id="cbMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="cb-entry">
+        <span class="cb-fieldlbl">Log a closed trade — exact R-multiple</span>
+        <input id="cbInput" type="number" step="0.01" inputmode="decimal" placeholder="type any value, e.g. +0.45 or -0.24">
+        <button class="tap" id="cbLog">Log trade</button>
+      </div>
+      <div class="cb-quicklbl">quick fills (or type the exact value above)</div>
+      <div class="cb-quick" id="cbQuick"></div>
+      <div class="cb-log" id="cbList"></div>
+    </div>
+
+    <div class="card cb-settings">
+      <div class="hd" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span class="label">Thresholds</span>
+        <button class="ghost" id="cbReset">New session</button>
+      </div>
+      <div class="cb-set-row"><span>Runner threshold</span><div class="inpwrap"><input id="cbRunnerT" inputmode="decimal"><span class="suf">R</span></div></div>
+      <div class="cb-set-row"><span>Day-done cap</span><div class="inpwrap"><input id="cbDayCap" inputmode="decimal"><span class="suf">R</span></div></div>
+      <p class="cb-note">Size warning at 2 consecutive non-runners · probing halts at 3 · day locks at the cap. Counters reset on a new date or when you start a new session.</p>
     </div>
   </div>
 
@@ -435,12 +507,90 @@ function calcPS(){
 let psPrefs={ccy:'₹',account:'',risk:'1',lot:''};
 function savePsPrefs(){psPrefs={ccy:PS.ccy,account:document.getElementById('ps_account').value,risk:document.getElementById('ps_risk').value,lot:document.getElementById('ps_lot').value};DB.set('ps:prefs',JSON.stringify(psPrefs));}
 
+/* ================= CIRCUIT-BREAKER ================= */
+/* editable thresholds */
+let cbCfg = { dayCap: -3, runnerT: 1 };
+let cbState = { date: todayKey(), trades: [] };   // trades: array of R numbers in order logged
+
+function cbDerive(){
+  const netR = cbState.trades.reduce((a,b)=>a+b,0);
+  let nonRunners=0;
+  for(let i=cbState.trades.length-1;i>=0;i--){ if(cbState.trades[i]>=cbCfg.runnerT) break; nonRunners++; }
+  // active state precedence: day-done (red) > halt (red) > size warning (amber) > clear
+  let level='clear', headline='CLEAR TO PROBE', msg='';
+  if(netR<=cbCfg.dayCap){ level='red'; headline='DAY DONE'; msg='Hard lock. Net '+netR.toFixed(2)+'R \u2264 '+cbCfg.dayCap+'R cap. No new entries, no override \u2014 capital backstop. A winner logged adds budget back.'; }
+  else if(nonRunners>=3){ level='red'; headline='PROBING HALTED'; msg=nonRunners+' non-runners in a row. Bench on environment. No new entries until a '+'\u2265'+cbCfg.runnerT+'R runner resets it. Override is possible but the counter is the point.'; }
+  else if(nonRunners===2){ level='amber'; headline='SIZE WARNING'; msg='2 non-runners in a row. Halve size on the next entry. One more non-runner halts probing.'; }
+  else if(netR<=cbCfg.dayCap+1){ level='amber'; headline='CLEAR \u2014 NEAR CAP'; msg='Within 1R of the '+cbCfg.dayCap+'R day cap. One more loser likely ends the day.'; }
+  return { netR, nonRunners, level, headline, msg };
+}
+function renderCB(){
+  // date rollover auto-reset
+  if(cbState.date!==todayKey()){ cbState={date:todayKey(),trades:[]}; saveCB(); }
+  const d=cbDerive();
+  const card=document.getElementById('cbCard');
+  card.classList.remove('amber','red'); if(d.level!=='clear')card.classList.add(d.level);
+  document.getElementById('cbState').textContent=d.headline;
+  document.getElementById('cbTrades').textContent=cbState.trades.length;
+  const net=document.getElementById('cbNet'); net.textContent=(d.netR>=0?'+':'')+d.netR.toFixed(2)+'R';
+  net.style.color=d.netR>0?'var(--accent)':d.netR<0?'var(--red)':'var(--txt)';
+  document.getElementById('cbStreak').textContent=d.nonRunners;
+  document.getElementById('cbStreakLbl').textContent=d.nonRunners===1?'non-runner':'non-runners';
+  const msg=document.getElementById('cbMsg'); msg.className='cb-msg'+(d.level!=='clear'?' '+d.level:''); msg.textContent=d.msg;
+  // trade log
+  const list=document.getElementById('cbList');
+  list.innerHTML=cbState.trades.map((r,i)=>{
+    const cls=r>=cbCfg.runnerT?'pos':r<0?'neg':'flat';
+    const tag=r>=cbCfg.runnerT?'<span class="tag run">runner \u2014 resets</span>':'<span class="tag">non-runner</span>';
+    return '<div class="cb-trade"><span class="seq">'+(i+1)+'</span><span class="r '+cls+'">'+(r>=0?'+':'')+r.toFixed(2)+'R</span>'+tag+'<button class="x" data-i="'+i+'">\u2715</button></div>';
+  }).reverse().join('');
+  list.querySelectorAll('.x').forEach(b=>b.onclick=async()=>{cbState.trades.splice(+b.dataset.i,1);renderCB();await saveCB();});
+}
+const saveCB=()=>DB.set('cb:state',JSON.stringify(cbState));
+const saveCBCfg=()=>DB.set('cb:cfg',JSON.stringify(cbCfg));
+
+async function cbLogR(r){
+  if(isNaN(r))return;
+  const before=cbDerive();
+  cbState.date=todayKey(); cbState.trades.push(r);
+  renderCB(); await saveCB();
+  const after=cbDerive();
+  if(after.level==='red'&&before.level!=='red')toast(after.headline+' \u2014 stop');
+  else if(r>=cbCfg.runnerT&&before.nonRunners>=2)toast('runner \u2014 counter reset \u2713');
+}
+document.getElementById('cbLog').onclick=async()=>{
+  const el=document.getElementById('cbInput'); const r=parseFloat(el.value);
+  if(isNaN(r)){toast('enter an R value');return;}
+  await cbLogR(r); el.value=''; el.focus();
+};
+document.getElementById('cbInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('cbLog').click();});
+// quick-add chips
+document.getElementById('cbQuick').innerHTML=['-1','-0.5','+0.5','+1','+2'].map(v=>'<button data-r="'+v+'">'+v+'R</button>').join('');
+document.getElementById('cbQuick').querySelectorAll('button').forEach(b=>b.onclick=()=>cbLogR(parseFloat(b.dataset.r)));
+// new session reset
+// new session reset — two-tap (native confirm() is blocked in embedded/sandboxed views)
+let cbResetArm=null;
+async function cbDoReset(){ cbState={date:todayKey(),trades:[]}; renderCB(); await saveCB(); toast('new session'); }
+document.getElementById('cbReset').onclick=async function(){
+  const btn=this;
+  if(!cbState.trades.length){ await cbDoReset(); return; }
+  if(cbResetArm){ clearTimeout(cbResetArm); cbResetArm=null; btn.textContent='New session'; btn.classList.remove('arm'); await cbDoReset(); return; }
+  btn.textContent='Tap again to clear '+cbState.trades.length;
+  btn.classList.add('arm');
+  cbResetArm=setTimeout(()=>{cbResetArm=null;btn.textContent='New session';btn.classList.remove('arm');},3000);
+};
+// thresholds
+const cbRunnerT=document.getElementById('cbRunnerT'), cbDayCap=document.getElementById('cbDayCap');
+cbRunnerT.addEventListener('change',async()=>{const v=parseFloat(cbRunnerT.value);if(!isNaN(v)&&v>0){cbCfg.runnerT=v;renderCB();await saveCBCfg();}else cbRunnerT.value=cbCfg.runnerT;});
+cbDayCap.addEventListener('change',async()=>{let v=parseFloat(cbDayCap.value);if(!isNaN(v)){if(v>0)v=-v;cbCfg.dayCap=v;cbDayCap.value=v;renderCB();await saveCBCfg();}else cbDayCap.value=cbCfg.dayCap;});
+
 /* ================= tabs ================= */
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('show'));
   document.getElementById('view-'+b.dataset.tab).classList.add('show');
   if(b.dataset.tab==='mb')renderMB();
+  if(b.dataset.tab==='cb')renderCB();
 });
 
 /* ================= sync / auth ================= */
@@ -448,9 +598,15 @@ const syncBtn=document.getElementById('syncBtn'),syncTxt=document.getElementById
 function setSync(state,txt){syncBtn.classList.toggle('on',state);syncTxt.textContent=txt;}
 const modal=document.getElementById('authModal');
 document.getElementById('authX').onclick=()=>modal.classList.remove('show');
+let signoutArm=null;
 syncBtn.onclick=async()=>{
   if(!synced){toast('add Supabase keys to enable sync');return;}
-  if(user){ if(confirm('Sign out of sync on this device?')){await sb.auth.signOut();location.reload();} return; }
+  if(user){
+    if(signoutArm){clearTimeout(signoutArm);signoutArm=null;await sb.auth.signOut();location.reload();return;}
+    syncTxt.textContent='tap again to sign out';
+    signoutArm=setTimeout(()=>{signoutArm=null;setSync(true,'synced');},3000);
+    return;
+  }
   modal.classList.add('show');
 };
 document.getElementById('authSend').onclick=async()=>{
@@ -478,7 +634,10 @@ async function loadAll(){
     document.getElementById('ps_risk').value=psPrefs.risk||'1';
     document.getElementById('ps_lot').value=psPrefs.lot||'';
   }}catch{}
-  goalInput.value=mbSettings.goal;updateCcy();renderMB();calcPS();
+  try{const cc=await DB.get('cb:cfg');if(cc)cbCfg={...cbCfg,...JSON.parse(cc)};}catch{}
+  try{const cs=await DB.get('cb:state');if(cs){const s=JSON.parse(cs);if(s&&s.date===todayKey())cbState=s;}}catch{}
+  cbRunnerT.value=cbCfg.runnerT;cbDayCap.value=cbCfg.dayCap;
+  goalInput.value=mbSettings.goal;updateCcy();renderMB();calcPS();renderCB();
 }
 
 async function init(){
