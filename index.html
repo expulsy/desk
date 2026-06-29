@@ -235,6 +235,43 @@
   .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;max-width:360px;width:100%}
   .modal h3{font-size:17px;margin-bottom:6px}.modal p{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:16px}
   .modal .x{float:right;background:none;border:none;color:var(--muted-2);font-size:18px;cursor:pointer}
+
+  /* ===== SA (situational awareness) ===== */
+  .sa .card+.card{margin-top:14px}
+  .sa .qhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+  .sa .qhead .d{font-size:12px;color:var(--muted)}
+  .sa .q{margin-bottom:15px}
+  .sa .q>.l{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--txt);margin-bottom:7px}
+  .sa .q>.l .tag{font-size:9px;color:var(--amber);border:1px solid var(--amber);border-radius:4px;padding:1px 5px;letter-spacing:.06em;text-transform:uppercase}
+  .sa .q>.l .rm{margin-left:auto;background:none;border:none;color:var(--muted-2);cursor:pointer;font-size:13px;line-height:1}
+  .sa .q>.l .rm:hover{color:var(--red)}
+  .sa .qrow{display:flex;gap:7px}
+  .sa .q select{flex:1;min-width:0}
+  .sa .addopt{flex:0 0 44px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:8px;cursor:pointer;font-size:17px;transition:all .15s}
+  .sa .addopt:hover{border-color:var(--accent-dim);color:var(--accent)}
+  .sa textarea{background:var(--panel-2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:10px 11px;font-family:'Archivo',sans-serif;font-size:14px;width:100%;outline:none;resize:vertical;min-height:54px;transition:border-color .2s,box-shadow .2s}
+  .sa textarea:focus{border-color:var(--accent-dim);box-shadow:0 0 0 3px var(--accent-glow)}
+  .sa .addq{margin-top:2px}
+  .sa .rate-q{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+  .sa .rate-q:last-child{border-bottom:none}
+  .sa .rate-q .q-l{font-size:13px;color:var(--txt)}
+  .sa .rate-q .q-a{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted-2);margin-top:3px}
+  .sa .rate-q .q-a b{color:var(--muted)}
+  .sa .sc{display:flex;gap:6px;flex:0 0 auto}
+  .sa .sc button{width:36px;height:36px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted-2);cursor:pointer;font-size:15px;transition:all .12s}
+  .sa .sc button.ok.on{background:var(--accent);border-color:var(--accent);color:#06210c}
+  .sa .sc button.no.on{background:rgba(229,83,75,.16);border-color:#7a2e2a;color:var(--red)}
+  .sa .total{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent);margin-top:14px;text-align:right}
+  .sa .ratedate{margin-bottom:12px}
+  .sa .h-row{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:9px;background:var(--panel-2)}
+  .sa .h-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+  .sa .h-date{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+  .sa .h-score{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent)}
+  .sa .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .sa .chip{font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px 8px}
+  .sa .chip i{font-style:normal;color:var(--muted-2)}
+  .sa .h-note{font-size:12px;color:var(--muted);margin-top:9px;font-style:italic}
+  .sa .empty{color:var(--muted-2);font-size:12.5px;padding:4px 0}
 </style>
 </head>
 <body>
@@ -250,6 +287,7 @@
     <button data-tab="ps">Position Size</button>
     <button data-tab="cb">Circuit-Breaker</button>
     <button data-tab="fc">Focus</button>
+    <button data-tab="sa">SA</button>
   </div>
 
   <!-- ============ MODEL BOOK ============ -->
@@ -470,6 +508,30 @@
       <div class="goalwrap">daily goal <input id="fcTarget" type="number" min="1" max="16" value="4"><span style="color:var(--muted-2)">h</span></div>
       <button class="ghost" id="fcSound">sound: on</button>
       <button class="ghost" id="fcAdd">Log past session</button>
+    </div>
+  </div>
+
+  <!-- ============ SA — situational awareness ============ -->
+  <div class="view sa" id="view-sa">
+    <div class="card">
+      <div class="qhead"><span class="label">Today's read</span><span class="d mono" id="saDate"></span></div>
+      <div id="saQuestions"></div>
+      <button class="ghost addq" id="saAddQ">+ add a question</button>
+      <div class="q" style="margin-top:16px">
+        <div class="l"><span>Probabilistic scenario</span><span style="color:var(--muted-2)">optional</span></div>
+        <textarea id="saScenario" placeholder="strong trend that hit selling → choppy range, expect it to continue"></textarea>
+      </div>
+      <button class="tap" id="saSave" style="font-size:15px;padding:14px;margin-top:16px">Save today</button>
+    </div>
+
+    <div class="card">
+      <div class="label" style="margin-bottom:14px">Rate the day before — 1 pt each</div>
+      <div id="saRate"></div>
+    </div>
+
+    <div class="card">
+      <div class="label" style="margin-bottom:14px">History</div>
+      <div id="saHistory"></div>
     </div>
   </div>
 
@@ -1040,6 +1102,121 @@ const fcTargetEl=document.getElementById('fcTarget');
 fcTargetEl.addEventListener('change',async()=>{let v=Math.max(1,Math.min(16,parseInt(fcTargetEl.value)||4));fcSettings.targetMin=v*60;fcTargetEl.value=v;renderFocus();await saveFcSettings();});
 document.getElementById('fcSound').onclick=async function(){fcSettings.sound=!fcSettings.sound;this.textContent='sound: '+(fcSettings.sound?'on':'off');await saveFcSettings();if(fcSettings.sound)fcChime();};
 
+/* ================= SA — situational awareness ================= */
+const SA_DEFAULTS=[
+  {id:'phase',label:'Which phase are we in?',options:['Trending market','Choppy range post trend','Tight range in trend','Topping market','Down trending market','Extreme oversold market']},
+  {id:'breakouts',label:'Are breakouts likely to work?',options:['Yes','No','Mixed']},
+  {id:'breakdowns',label:'Are breakdowns likely to work?',options:['Yes','No','Mixed']},
+  {id:'setup',label:'Which setup is likely to work here?',options:['Episodic Pivot','Continuation / pullback','Opening Range Breakout','Range expansion','Mean reversion / fade','Stand aside']},
+  {id:'regime',label:'Breadth regime today?',options:['Green','Yellow','Red']},
+  {id:'risk',label:'Risk posture?',options:['Full size','Half size','Probe only','Cash / sidelines']},
+  {id:'gaps',label:'Are gaps being bought or sold?',options:['Bought','Sold','Mixed']},
+  {id:'followthrough',label:"Follow-through on yesterday's movers?",options:['Strong','Weak','Mixed']}
+];
+let saState={questions:null,entries:[]}, saRateDate=null;
+function saDefaults(){return SA_DEFAULTS.map(q=>({...q,options:[...q.options]}));}
+async function saSave(){await DB.set('sa:state',JSON.stringify(saState));}
+function saEntry(d){return saState.entries.find(e=>e.date===d);}
+function saFmt(k){const[y,m,d]=k.split('-').map(Number);const dt=new Date(y,m-1,d);return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dt.getDay()]+' '+d+' '+MON[m-1];}
+function saPriorDates(){return saState.entries.map(e=>e.date).filter(d=>d<todayKey()).sort().reverse();}
+
+function renderSA(){renderSAQuestions();renderSARate();renderSAHistory();}
+
+function renderSAQuestions(){
+  const today=saEntry(todayKey()),box=document.getElementById('saQuestions');box.innerHTML='';
+  saState.questions.forEach(q=>{
+    const wrap=document.createElement('div');wrap.className='q';
+    const l=document.createElement('div');l.className='l';
+    const nm=document.createElement('span');nm.textContent=q.label;l.appendChild(nm);
+    const rm=document.createElement('button');rm.className='rm';rm.textContent='✕';rm.title='remove question';
+    rm.onclick=()=>{if(confirm('Remove "'+q.label+'"?')){saState.questions=saState.questions.filter(x=>x.id!==q.id);saSave();renderSA();}};
+    l.appendChild(rm);
+    const row=document.createElement('div');row.className='qrow';
+    const sel=document.createElement('select');sel.dataset.qid=q.id;
+    const blank=document.createElement('option');blank.value='';blank.textContent='—';sel.appendChild(blank);
+    q.options.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;sel.appendChild(op);});
+    sel.value=today&&today.answers[q.id]?today.answers[q.id]:'';
+    const add=document.createElement('button');add.className='addopt';add.textContent='+';add.title='add an option';
+    add.onclick=()=>{const v=prompt('Add an option to \u201c'+q.label+'\u201d:');if(v&&v.trim()){q.options.push(v.trim());saSave();renderSAQuestions();}};
+    row.appendChild(sel);row.appendChild(add);
+    wrap.appendChild(l);wrap.appendChild(row);box.appendChild(wrap);
+  });
+  if(today&&today.scenario!=null)document.getElementById('saScenario').value=today.scenario;
+  document.getElementById('saDate').textContent=saFmt(todayKey());
+}
+
+function saSaveToday(){
+  const answers={};
+  document.querySelectorAll('#saQuestions select').forEach(s=>{if(s.value)answers[s.dataset.qid]=s.value;});
+  const d=todayKey();let e=saEntry(d);
+  if(!e){e={date:d,answers:{},grades:{},scenario:''};saState.entries.push(e);}
+  e.answers=answers;e.scenario=document.getElementById('saScenario').value.trim();
+  saSave();toast('saved \u2713');renderSARate();renderSAHistory();
+}
+
+function renderSARate(){
+  const box=document.getElementById('saRate');box.innerHTML='';
+  const dates=saPriorDates();
+  if(!dates.length){box.innerHTML='<div class="empty">No earlier read to rate yet. Log today, then rate it tomorrow.</div>';return;}
+  if(!saRateDate||!dates.includes(saRateDate))saRateDate=dates[0];
+  const e=saEntry(saRateDate);e.grades=e.grades||{};
+  if(dates.length>1){
+    const sel=document.createElement('select');sel.className='ratedate';
+    dates.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=saFmt(d);if(d===saRateDate)o.selected=true;sel.appendChild(o);});
+    sel.onchange=()=>{saRateDate=sel.value;renderSARate();};box.appendChild(sel);
+  }else{const h=document.createElement('div');h.className='h-date';h.style.marginBottom='12px';h.textContent=saFmt(saRateDate);box.appendChild(h);}
+  let answered=0,points=0;
+  saState.questions.forEach(q=>{
+    const ans=e.answers[q.id];if(!ans)return;answered++;if(e.grades[q.id]===1)points++;
+    const row=document.createElement('div');row.className='rate-q';
+    const left=document.createElement('div');
+    const ql=document.createElement('div');ql.className='q-l';ql.textContent=q.label;
+    const qa=document.createElement('div');qa.className='q-a';qa.innerHTML='called: <b></b>';qa.querySelector('b').textContent=ans;
+    left.appendChild(ql);left.appendChild(qa);
+    const sc=document.createElement('div');sc.className='sc';
+    const ok=document.createElement('button');ok.className='ok'+(e.grades[q.id]===1?' on':'');ok.textContent='✓';ok.title='right (1 pt)';
+    const no=document.createElement('button');no.className='no'+(e.grades[q.id]===0?' on':'');no.textContent='✗';no.title='wrong';
+    ok.onclick=()=>{e.grades[q.id]=e.grades[q.id]===1?undefined:1;saSave();renderSARate();renderSAHistory();};
+    no.onclick=()=>{e.grades[q.id]=e.grades[q.id]===0?undefined:0;saSave();renderSARate();renderSAHistory();};
+    sc.appendChild(ok);sc.appendChild(no);row.appendChild(left);row.appendChild(sc);box.appendChild(row);
+  });
+  const tot=document.createElement('div');tot.className='total';tot.textContent='Score '+points+' / '+answered;box.appendChild(tot);
+}
+
+function saScoreStr(e){const g=e.grades||{},ks=Object.keys(g).filter(k=>g[k]===0||g[k]===1);if(!ks.length)return null;return ks.filter(k=>g[k]===1).length+' / '+ks.length;}
+function saRatio(e){const g=e.grades||{},ks=Object.keys(g).filter(k=>g[k]===0||g[k]===1);if(!ks.length)return null;return ks.filter(k=>g[k]===1).length/ks.length;}
+
+function renderSAHistory(){
+  const box=document.getElementById('saHistory');box.innerHTML='';
+  const list=[...saState.entries].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!list.length){box.innerHTML='<div class="empty">Nothing logged yet.</div>';return;}
+  list.forEach(e=>{
+    const row=document.createElement('div');row.className='h-row';
+    const r=saRatio(e);
+    if(r!==null){
+      if(r>=0.5){const a=0.12+(r-0.5)*0.72;row.style.background='rgba(63,185,80,'+a.toFixed(2)+')';row.style.borderColor='rgba(63,185,80,'+Math.min(0.6,a+0.15).toFixed(2)+')';}
+      else{const a=0.10+(0.5-r)*0.5;row.style.background='rgba(229,83,75,'+a.toFixed(2)+')';row.style.borderColor='rgba(229,83,75,'+(a+0.15).toFixed(2)+')';}
+    }
+    const top=document.createElement('div');top.className='h-top';
+    const sc=saScoreStr(e);
+    const dd=document.createElement('span');dd.className='h-date';dd.textContent=saFmt(e.date)+(e.date===todayKey()?' · today':'');top.appendChild(dd);
+    if(sc){const ss=document.createElement('span');ss.className='h-score';ss.textContent=sc;top.appendChild(ss);}
+    const chips=document.createElement('div');chips.className='chips';
+    saState.questions.forEach(q=>{if(e.answers[q.id]){const c=document.createElement('span');c.className='chip';const i=document.createElement('i');i.textContent=q.label.replace(/\?$/,'')+': ';c.appendChild(i);c.appendChild(document.createTextNode(e.answers[q.id]));chips.appendChild(c);}});
+    row.appendChild(top);row.appendChild(chips);
+    if(e.scenario){const n=document.createElement('div');n.className='h-note';n.textContent=e.scenario;row.appendChild(n);}
+    box.appendChild(row);
+  });
+}
+
+document.getElementById('saSave').onclick=saSaveToday;
+document.getElementById('saAddQ').onclick=()=>{
+  const label=prompt('New question:');if(!label||!label.trim())return;
+  const opts=prompt('Options (comma-separated):','');
+  saState.questions.push({id:'q'+Date.now(),label:label.trim(),options:(opts||'').split(',').map(s=>s.trim()).filter(Boolean)});
+  saSave();renderSAQuestions();
+};
+
 /* ================= tabs ================= */
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');
@@ -1048,6 +1225,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   if(b.dataset.tab==='mb')renderMB();
   if(b.dataset.tab==='cb')renderCB();
   if(b.dataset.tab==='fc')renderFocus();
+  if(b.dataset.tab==='sa')renderSA();
 });
 
 /* ================= sync / auth ================= */
@@ -1107,8 +1285,10 @@ async function loadAll(){
     if(fcLive.running&&fcRemainMs()<=0){finalizeSession(true);toast('finished while away ✓');}
     else if(fcLive.running){startFcTick();}
   }
+  try{const sa=await DB.get('sa:state');if(sa){const o=JSON.parse(sa);saState.questions=(o.questions&&o.questions.length)?o.questions:saDefaults();saState.entries=o.entries||[];}}catch{}
+  if(!saState.questions)saState.questions=saDefaults();
   cbRunnerT.value=cbCfg.runnerT;cbDayCap.value=cbCfg.dayCap;
-  goalInput.value=mbSettings.goal;updateCcy();renderMB();calcPS();renderCB();renderFocus();
+  goalInput.value=mbSettings.goal;updateCcy();renderMB();calcPS();renderCB();renderFocus();renderSA();
 }
 
 async function init(){
